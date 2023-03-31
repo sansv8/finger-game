@@ -20,47 +20,78 @@ def hostFn():
         with conn:
             print(f"Connected by {addr}")
             while True:
-              yourHand = input("Your hand (L/R): ")
-              if yourHand == "L":
-                yourHand = myLH
+              # YOUR TURN
+              yourMode = input("Attack or Split? (A/S)")
+              conn.sendall(bytes(yourMode, "utf-8"))
+              if yourMode == "A":
+                yourHand = input("Your hand (L/R): ")
+                if yourHand == "L":
+                  yourHand = myLH
+                else:
+                  yourHand = myRH
+                theirHand = input("Their hand (L/R): ")
+                if (theirHand == "L"):
+                  notmyLH = notmyLH + yourHand
+                  if notmyLH >= 5:
+                    notmyLH = notmyLH - 5
+                else:
+                  notmyRH = notmyRH + yourHand
+                  if notmyRH >= 5:
+                    notmyRH = notmyRH - 5
+
+                print(f"their hand:")
+                print(f"{notmyLH}\t{notmyRH}\n\n")
+                print(f"your hand:")
+                print(f"{myLH}\t{myRH}\n")
+
+
+
+                conn.sendall(bytes(str(yourHand), "utf-8"))
+                conn.sendall(bytes(str(theirHand), "utf-8"))
+
               else:
-                yourHand = myRH
-              theirHand = input("Their hand (L/R): ")
-              if (theirHand == "L"):
-                notmyLH = notmyLH + yourHand
+                fingerSum = myLH + myRH
+                toLeft = int(input("amount to go to left hand: ") )
+                myLH = toLeft
+                myRH = fingerSum - toLeft
+
+                print(f"their hand:")
+                print(f"{notmyLH}\t{notmyRH}\n\n")
+                print(f"your hand:")
+                print(f"{myLH}\t{myRH}\n")
+
+                conn.sendall(bytes(str(myLH), "utf-8"))
+                conn.sendall(bytes(str(myRH), "utf-8"))
+
+              # THEIR TURN
+              mode = conn.recv(1024).decode("utf-8")
+              if mode == "A":
+                attack = conn.recv(1024).decode("utf-8") 
+
+
+                direction = conn.recv(1024).decode("utf-8") 
+
+
+                if direction == "L":
+                  myLH = myLH + int(attack)
+                  if myLH >= 5:
+                    myLH = myLH - 5
+                else:
+                  myRH = myRH + int(attack)
+                  if myRH >= 5:
+                    myRH = myRH - 5
               else:
-                notmyRH = notmyRH + yourHand
+                notmyLH = int(conn.recv(1024).decode("utf-8") )
+
+                notmyRH = int(conn.recv(1024).decode("utf-8") )
+
 
               print(f"their hand:")
               print(f"{notmyLH}\t{notmyRH}\n\n")
               print(f"your hand:")
-              print(f"{myLH}\t{myRH}")
+              print(f"{myLH}\t{myRH}\n")
 
 
-
-              conn.sendall(bytes(str(yourHand), "utf-8"))
-              conn.sendall(bytes(theirHand, "utf-8"))
-
-              attack = conn.recv(1024).decode("utf-8") 
-              
-
-              direction = conn.recv(1024).decode("utf-8") 
-              
-
-              if direction == "L":
-                myLH = myLH + int(attack)
-              else:
-                 myRH = myRH + int(attack)
-
-              print(f"their hand:")
-              print(f"{notmyLH}\t{notmyRH}\n\n")
-              print(f"your hand:")
-              print(f"{myLH}\t{myRH}")
-              # out = input("Data to send: ")
-              # conn.sendall(bytes(out, "utf-8"))
-              # data = conn.recv(1024)
-              # print(f"Received {data}")
-   
 
 def clientFn():
   myLH = 1
@@ -77,37 +108,76 @@ def clientFn():
       s.connect((host, PORT))
       # s.sendall(b"Connected!")
       while True:
-        attack = s.recv(1024).decode("utf-8") 
-
-        direction = s.recv(1024).decode("utf-8") 
-
-        if direction == "L":
-            myLH = myLH + int(attack)
-        else:
-           myRH = myRH + int(attack)
-
-        print(f"their hand:")
-        print(f"{notmyLH}\t{notmyRH}\n\n")
-        print(f"your hand:")
-        print(f"{myLH}\t{myRH}")
-
-        yourHand = input("Your hand (L/R): ")
-        if yourHand == "L":
-          yourHand = myLH
-        else:
-           yourHand = myRH
-        theirHand = input("Their hand (L/R): ")
-        if (theirHand == "L"):
-           notmyLH = notmyLH + yourHand
-        else:
-           notmyRH = notmyRH + yourHand
+        # THEIR TURN
+        mode = s.recv(1024).decode("utf-8")
         
+        if mode == "A":
+          attack = s.recv(1024).decode("utf-8") 
+
+          direction = s.recv(1024).decode("utf-8") 
+
+          if direction == "L":
+              myLH = myLH + int(attack)
+              if myLH >= 5:
+                myLH = myLH - 5
+          else:
+            myRH = myRH + int(attack)
+            if myRH >= 5:
+                myRH = myRH - 5
+
+          
+        else :
+          notmyLH = int(s.recv(1024).decode("utf-8") )
+
+          notmyRH = int(s.recv(1024).decode("utf-8") )
+
         print(f"their hand:")
         print(f"{notmyLH}\t{notmyRH}\n\n")
         print(f"your hand:")
-        print(f"{myLH}\t{myRH}")
-        s.sendall(bytes(str(yourHand), "utf-8"))
-        s.sendall(bytes(theirHand, "utf-8"))
+        print(f"{myLH}\t{myRH}\n")
+
+
+        # YOUR TURN
+
+        yourMode = input("Attack or Split? (A/S)")
+        s.sendall(bytes(yourMode, "utf-8"))
+        if yourMode == "A":
+          yourHand = input("Your hand (L/R): ")
+          if yourHand == "L":
+            yourHand = myLH
+          else:
+            yourHand = myRH
+          theirHand = input("Their hand (L/R): ")
+          if (theirHand == "L"):
+            notmyLH = notmyLH + yourHand
+            if notmyLH >= 5:
+              notmyLH = notmyLH - 5
+          else:
+            notmyRH = notmyRH + yourHand
+            if notmyRH >= 5:
+              notmyRH = notmyRH - 5
+          
+          print(f"their hand:")
+          print(f"{notmyLH}\t{notmyRH}\n\n")
+          print(f"your hand:")
+          print(f"{myLH}\t{myRH}\n")
+          s.sendall(bytes(str(yourHand), "utf-8"))
+          s.sendall(bytes(theirHand, "utf-8"))
+        
+        else:
+          fingerSum = myLH + myRH
+          toLeft = int(input("amount to go to left hand: ") )
+          myLH = toLeft
+          myRH = fingerSum - toLeft
+
+          print(f"their hand:")
+          print(f"{notmyLH}\t{notmyRH}\n\n")
+          print(f"your hand:")
+          print(f"{myLH}\t{myRH}\n")
+
+          s.sendall(bytes(myLH, "utf-8"))
+          s.sendall(bytes(myRH, "utf-8"))
+
 
 
 
