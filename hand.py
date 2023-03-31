@@ -2,7 +2,7 @@
 
 class hand:
 
-    def __init__(self,rule1,rule2):
+    def __init__(self,rule1):
         self.fingers=1
         self.rule1=rule1
         
