@@ -22,7 +22,7 @@ def hostFn():
             while True:
               # YOUR TURN
               yourMode = input("Attack or Split? (A/S)")
-              conn.sendall(bytes(yourMode, "utf-8"))
+              
               if yourMode == "A":
                 yourHand = input("Your hand (L/R): ")
                 if yourHand == "L":
@@ -44,8 +44,11 @@ def hostFn():
                 print(f"your hand:")
                 print(f"{myLH}\t{myRH}\n")
 
-
-
+                if (not notmyLH and not notmyRH):
+                  conn.sendall(bytes("W", "utf-8"))
+                  print("YOU WIN!!!!!!")
+                  return 0
+                conn.sendall(bytes(str(yourMode), "utf-8"))
                 conn.sendall(bytes(str(yourHand), "utf-8"))
                 conn.sendall(bytes(str(theirHand), "utf-8"))
 
@@ -60,11 +63,22 @@ def hostFn():
                 print(f"your hand:")
                 print(f"{myLH}\t{myRH}\n")
 
+                conn.sendall(bytes(str(yourMode), "utf-8"))
                 conn.sendall(bytes(str(myLH), "utf-8"))
                 conn.sendall(bytes(str(myRH), "utf-8"))
 
               # THEIR TURN
               mode = conn.recv(1024).decode("utf-8")
+              if mode == "W":
+                myLH = 0
+                myRH = 0
+                print(f"their hand:")
+                print(f"{notmyLH}\t{notmyRH}\n\n")
+                print(f"your hand:")
+                print(f"{myLH}\t{myRH}\n")
+                print("YOU LOSE")
+                return 0
+              
               if mode == "A":
                 attack = conn.recv(1024).decode("utf-8") 
 
@@ -111,6 +125,16 @@ def clientFn():
         # THEIR TURN
         mode = s.recv(1024).decode("utf-8")
         
+        if mode == "W":
+          myLH = 0
+          myRH = 0
+          print(f"their hand:")
+          print(f"{notmyLH}\t{notmyRH}\n\n")
+          print(f"your hand:")
+          print(f"{myLH}\t{myRH}\n")
+          print("YOU LOSE")
+          return 0
+
         if mode == "A":
           attack = s.recv(1024).decode("utf-8") 
 
@@ -140,7 +164,7 @@ def clientFn():
         # YOUR TURN
 
         yourMode = input("Attack or Split? (A/S)")
-        s.sendall(bytes(yourMode, "utf-8"))
+        
         if yourMode == "A":
           yourHand = input("Your hand (L/R): ")
           if yourHand == "L":
@@ -161,6 +185,13 @@ def clientFn():
           print(f"{notmyLH}\t{notmyRH}\n\n")
           print(f"your hand:")
           print(f"{myLH}\t{myRH}\n")
+
+          if (not notmyLH and not notmyRH):
+            s.sendall(bytes("W", "utf-8"))
+            print("YOU WIN!!!!!!")
+            return 0
+          
+          s.sendall(bytes(yourMode, "utf-8"))
           s.sendall(bytes(str(yourHand), "utf-8"))
           s.sendall(bytes(theirHand, "utf-8"))
         
@@ -175,6 +206,7 @@ def clientFn():
           print(f"your hand:")
           print(f"{myLH}\t{myRH}\n")
 
+          s.sendall(bytes(yourMode, "utf-8"))
           s.sendall(bytes(myLH, "utf-8"))
           s.sendall(bytes(myRH, "utf-8"))
 
