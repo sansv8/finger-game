@@ -48,6 +48,7 @@ def hostFn():
                   conn.sendall(bytes("W", "utf-8"))
                   print("YOU WIN!!!!!!")
                   return 0
+                
                 conn.sendall(bytes(str(yourMode), "utf-8"))
                 conn.sendall(bytes(str(yourHand), "utf-8"))
                 conn.sendall(bytes(str(theirHand), "utf-8"))
@@ -149,8 +150,8 @@ def clientFn():
             if myRH >= 5:
                 myRH = myRH - 5
 
-          
-        else :
+
+        else:
           notmyLH = int(s.recv(1024).decode("utf-8") )
 
           notmyRH = int(s.recv(1024).decode("utf-8") )
@@ -207,8 +208,8 @@ def clientFn():
           print(f"{myLH}\t{myRH}\n")
 
           s.sendall(bytes(yourMode, "utf-8"))
-          s.sendall(bytes(myLH, "utf-8"))
-          s.sendall(bytes(myRH, "utf-8"))
+          s.sendall(bytes(str(myLH), "utf-8"))
+          s.sendall(bytes(str(myRH), "utf-8"))
 
 
 
